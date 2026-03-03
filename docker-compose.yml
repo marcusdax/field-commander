@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  signaling:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - PORT=3001
+    depends_on:
+      - redis
+      - tor-bridge
+    networks:
+      - field-commander
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - field-commander
+    volumes:
+      - redis-data:/data
+
+  tor-bridge:
+    image: goldy/tor:1.0
+    ports:
+      - "9050:9050"
+    networks:
+      - field-commander
+    volumes:
+      - tor-data:/var/lib/tor
+
+  tor-proxy:
+    image: osminogin/tor-simple
+    ports:
+      - "8118:8118"
+    networks:
+      - field-commander
+
+networks:
+  field-commander:
+    driver: bridge
+
+volumes:
+  redis-data:
+  tor-data:

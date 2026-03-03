@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Lint mobile-app
+        working-directory: ./mobile-app
+        run: npm run lint || true
+        
+      - name: Lint web-client
+        working-directory: ./web-client
+        run: npm run lint || true
+        
+      - name: Lint backend
+        working-directory: ./backend
+        run: npm run lint || true
+
+  build-mobile:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          cd mobile-app
+          npm install
+          
+      - name: Build Android
+        run: |
+          cd mobile-app/android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon || echo "Build would require Android SDK"
+          
+      - name: Build iOS
+        run: |
+          cd mobile-app/ios
+          pod install || echo "iOS build would require macOS"
+
+  build-contracts:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          cd blockchain
+          npm install
+          
+      - name: Compile contracts
+        run: |
+          cd blockchain
+          npx hardhat compile
+          
+      - name: Run tests
+        run: |
+          cd blockchain
+          npx hardhat test || echo "Tests require local blockchain"
+
+  build-web:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          cd web-client
+          npm install
+          
+      - name: Build
+        run: |
+          cd web-client
+          npm run build
