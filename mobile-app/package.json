@@ -35,7 +35,6 @@
     "socket.io-client": "^4.7.0",
     "mqtt": "^5.3.0",
     "react-native-reanimated": "^3.6.0",
-    "@noble/post-quantum": "^1.0.0",
     "@react-navigation/native": "^6.1.0",
     "@react-navigation/native-stack": "^6.9.0",
     "react-native-safe-area-context": "^4.8.0",
