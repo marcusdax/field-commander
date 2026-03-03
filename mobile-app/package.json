@@ -20,7 +20,6 @@
     "@react-native-community/netinfo": "^11.3.0",
     "@react-native-community/geolocation": "^3.2.0",
     "react-native-tor": "^0.6.0",
-    "react-native-crystals": "^1.0.0",
     "react-native-vision-camera": "^3.9.0",
     "react-native-gl-model-view": "^1.8.0",
     "react-native-sensors": "^7.3.0",
