@@ -1,127 +1,155 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.19;
 
-contract CitizenLedgerDTA {
-    event MagicMomentRegistered(
-        bytes32 indexed dtaToken,
-        bytes32 immutableHash,
-        uint256 tcAwarded,
-        address indexed analystZKP,
-        uint256 timestamp
-    );
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
-    event DTASettled(
-        bytes32 indexed dtaToken,
-        address indexed recipient,
-        uint256 amount,
-        uint256 timestamp
-    );
+/**
+ * @title CitizenLedgerDTA
+ * @notice Direct Tokenized Attribution for NVIN / Field Commander agent compensation.
+ * @dev Deployed on Polygon. Agents earn ETH + TCR for verified vehicle recoveries.
+ *
+ * Roles:
+ *   DEFAULT_ADMIN_ROLE — contract owner (multisig in production)
+ *   AGENT_ROLE          — authorised field agents
+ *   VERIFIER_ROLE       — NVIN backend verifier service
+ */
+contract CitizenLedgerDTA is ERC20, AccessControl, ReentrancyGuard, Pausable {
 
-    event AnalystVerified(
-        address indexed analyst,
-        uint256 clearanceLevel,
-        uint256 timestamp
-    );
+    // ─── Roles ─────────────────────────────────────────────────────────────────
+    bytes32 public constant AGENT_ROLE    = keccak256("AGENT_ROLE");
+    bytes32 public constant VERIFIER_ROLE = keccak256("VERIFIER_ROLE");
 
-    mapping(bytes32 => bool) public verifiedDTAs;
-    mapping(address => uint256) public truthCredits;
-    mapping(address => uint256) public clearanceLevels;
-    mapping(bytes32 => uint256) public dtaTimestamps;
-
-    uint256 public totalTruthCreditsMinted;
-    uint256 public totalMissions;
-    uint256 public totalVerifiedAnalysts;
-
-    address public governance;
-    uint256 public constant VERIFICATION_BASE_TC = 25;
-    uint256 public constant MULTIPLIER_DENOMINATOR = 100;
-
-    modifier onlyGovernance() {
-        require(msg.sender == governance, "Only governance");
-        _;
+    // ─── State ────────────────────────────────────────────────────────────────
+    struct Recovery {
+        bytes32 plateHash;       // SHA-256 of plate text (never raw)
+        address agent;
+        uint256 timestamp;
+        bytes32 evidenceHash;    // SHA-256 of MagicMoment bundle
+        uint256 payoutAmount;
+        bool    paid;
+        uint8   confidence;      // 0–100
     }
 
-    modifier onlyVerifiedAnalyst() {
-        require(clearanceLevels[msg.sender] >= 1, "Analyst not verified");
-        _;
+    mapping(bytes32 => Recovery) public recoveries;
+    mapping(address => uint256)  public agentEarnings;
+    mapping(address => uint256)  public agentRecoveryCount;
+    mapping(bytes32 => bool)     public processedPlates;
+
+    uint256 public basePayout    = 0.5 ether;   // $500 equiv
+    uint256 public tcrRateBps    = 100;          // 1% in basis points
+
+    // ─── Events ────────────────────────────────────────────────────────────────
+    event RecoveryVerified(bytes32 indexed plateHash, address indexed agent, uint256 payout);
+    event PayoutExecuted(bytes32 indexed plateHash, address indexed agent, uint256 ethAmount, uint256 tcrAmount);
+    event BasePayoutUpdated(uint256 oldPayout, uint256 newPayout);
+    event AgentRegistered(address indexed agent);
+
+    // ─── Constructor ─────────────────────────────────────────────────────────────
+    constructor() ERC20("Truth Credit", "TCR") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _mint(msg.sender, 1_000_000 * 10 ** decimals());
     }
 
-    constructor() {
-        governance = msg.sender;
+    // ─── External functions ─────────────────────────────────────────────────────────
+
+    /**
+     * @notice Register a new field agent.
+     * @param agent Wallet address of the agent.
+     */
+    function registerAgent(address agent)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        _grantRole(AGENT_ROLE, agent);
+        emit AgentRegistered(agent);
     }
 
-    function registerAnalyst(address analyst, uint256 clearanceLevel) external onlyGovernance {
-        require(clearanceLevels[analyst] == 0, "Already registered");
-        clearanceLevels[analyst] = clearanceLevel;
-        totalVerifiedAnalysts++;
-        emit AnalystVerified(analyst, clearanceLevel, block.timestamp);
+    /**
+     * @notice Verify a vehicle recovery and execute DTA payout.
+     * @param plateHash    SHA-256 of the license plate string.
+     * @param agent        Field agent's wallet address.
+     * @param evidenceHash SHA-256 of the MagicMoment evidence bundle.
+     * @param confidence   AI confidence score (0–100).
+     */
+    function verifyRecovery(
+        bytes32 plateHash,
+        address agent,
+        bytes32 evidenceHash,
+        uint8   confidence
+    )
+        external
+        onlyRole(VERIFIER_ROLE)
+        nonReentrant
+        whenNotPaused
+    {
+        require(!processedPlates[plateHash], "DTA: plate already processed");
+        require(hasRole(AGENT_ROLE, agent),   "DTA: invalid agent");
+        require(confidence >= 85,             "DTA: confidence below threshold");
+
+        uint256 payout = calculatePayout(confidence);
+        require(address(this).balance >= payout, "DTA: insufficient contract balance");
+
+        recoveries[plateHash] = Recovery({
+            plateHash:     plateHash,
+            agent:         agent,
+            timestamp:     block.timestamp,
+            evidenceHash:  evidenceHash,
+            payoutAmount:  payout,
+            paid:          false,
+            confidence:    confidence
+        });
+        processedPlates[plateHash] = true;
+
+        emit RecoveryVerified(plateHash, agent, payout);
+        _executePayout(plateHash, agent, payout);
     }
 
-    function registerMagicMoment(
-        bytes32 dtaToken,
-        bytes32 immutableHash,
-        uint256 tcAwarded,
-        bytes calldata zkpProof
-    ) external onlyVerifiedAnalyst {
-        require(!verifiedDTAs[dtaToken], "DTA already registered");
-        
-        verifiedDTAs[dtaToken] = true;
-        dtaTimestamps[dtaToken] = block.timestamp;
-        totalTruthCreditsMinted += tcAwarded;
-        truthCredits[msg.sender] += tcAwarded;
-        totalMissions++;
-
-        emit MagicMomentRegistered(
-            dtaToken,
-            immutableHash,
-            tcAwarded,
-            msg.sender,
-            block.timestamp
-        );
+    /**
+     * @notice Calculate payout based on AI confidence.
+     */
+    function calculatePayout(uint8 confidence) public view returns (uint256) {
+        if (confidence >= 95) return basePayout * 2;          // 2×
+        if (confidence >= 90) return basePayout * 15 / 10;    // 1.5×
+        return basePayout;                                     // 1×
     }
 
-    function settleDTA(
-        bytes32 dtaToken,
-        address recipient,
-        uint256 multiplier
-    ) external onlyGovernance {
-        require(verifiedDTAs[dtaToken], "DTA not verified");
-        
-        uint256 tcAmount = (VERIFICATION_BASE_TC * multiplier) / MULTIPLIER_DENOMINATOR;
-        truthCredits[recipient] += tcAmount;
-        totalTruthCreditsMinted += tcAmount;
-
-        emit DTASettled(dtaToken, recipient, tcAmount, block.timestamp);
+    /**
+     * @notice Update the base payout amount (admin only).
+     */
+    function setBasePayout(uint256 newPayout)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        emit BasePayoutUpdated(basePayout, newPayout);
+        basePayout = newPayout;
     }
 
-    function verifyDTA(bytes32 dtaToken) external view returns (bool) {
-        return verifiedDTAs[dtaToken];
-    }
+    function pause()   external onlyRole(DEFAULT_ADMIN_ROLE) { _pause(); }
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) { _unpause(); }
 
-    function getTruthCredits(address account) external view returns (uint256) {
-        return truthCredits[account];
-    }
+    receive() external payable {}
 
-    function getAnalystClearance(address analyst) external view returns (uint256) {
-        return clearanceLevels[analyst];
-    }
+    // ─── Internal ─────────────────────────────────────────────────────────────────
+    function _executePayout(
+        bytes32 plateHash,
+        address agent,
+        uint256 amount
+    ) internal {
+        // ETH payout
+        (bool success, ) = agent.call{value: amount}("");
+        require(success, "DTA: ETH transfer failed");
 
-    function getStats() external view returns (
-        uint256 _totalMissions,
-        uint256 _totalTruthCreditsMinted,
-        uint256 _verifiedAnalysts,
-        uint256 _dtaCount
-    ) {
-        return (totalMissions, totalTruthCreditsMinted, totalVerifiedAnalysts, totalMissions);
-    }
+        // TCR reward: tcrRateBps / 10000 of the payout, converted to tokens
+        uint256 tcrReward = (amount * tcrRateBps) / 10_000;
+        _mint(agent, tcrReward);
 
-    function updateGovernance(address newGovernance) external onlyGovernance {
-        governance = newGovernance;
-    }
+        agentEarnings[agent]       += amount;
+        agentRecoveryCount[agent]  += 1;
+        recoveries[plateHash].paid  = true;
 
-    function withdrawTC(address payable recipient, uint256 amount) external onlyGovernance {
-        require(truthCredits[address(this)] >= amount, "Insufficient balance");
-        truthCredits[address(this)] -= amount;
-        recipient.transfer(amount);
+        emit PayoutExecuted(plateHash, agent, amount, tcrReward);
     }
 }

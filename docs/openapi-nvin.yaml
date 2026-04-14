@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+  title: Field Commander — NVIN Integration API
+  description: |
+    REST API for integrating Field Commander mobile agents with the
+    National Vehicle Intelligence Network (NVIN / InsightLPR / Odasi).
+  version: 1.0.0
+  contact:
+    name: NVIN Integration Team
+
+servers:
+  - url: https://api.nvin.network/v1
+    description: Production
+  - url: http://localhost:3001/v1
+    description: Local development
+
+security:
+  - bearerAuth: []
+
+paths:
+  /ocr/submit:
+    post:
+      summary: Submit an OCR plate capture for InsightLPR analysis
+      description: |
+        Submits a mobile plate reading to the NVIN gateway. Triggers NADE,
+        GIE, and BNE Odasi engines in parallel and returns KDA fusion output.
+      operationId: submitOCR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OCRSubmitRequest'
+      responses:
+        '200':
+          description: KDA fusion analysis complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NVINAnalysisResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /dta/payout:
+    post:
+      summary: Trigger DTA payout for verified vehicle recovery
+      description: |
+        Calls CitizenLedgerDTA on Polygon to execute ETH + TCR payout
+        for a field agent who recovered a listed vehicle.
+      operationId: requestDTAPayout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DTAPayoutRequest'
+      responses:
+        '200':
+          description: Payout executed on-chain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DTAPayoutResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          description: Confidence below minimum threshold (85)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /swarm/register:
+    post:
+      summary: Register a LuminNode swarm session
+      operationId: registerSwarm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwarmRegistrationRequest'
+      responses:
+        '200':
+          description: Swarm registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwarmRegistrationResponse'
+
+  /health:
+    get:
+      summary: NVIN gateway health check
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string, example: '1.0.0' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    OCRSubmitRequest:
+      type: object
+      required: [plate_text, confidence, image_hash, geolocation, timestamp, device_id]
+      properties:
+        plate_text:   { type: string, example: 'ABC1234' }
+        confidence:   { type: number, minimum: 0, maximum: 1, example: 0.93 }
+        image_hash:   { type: string, description: SHA-256 of captured frame }
+        geolocation:
+          type: object
+          required: [lat, lon]
+          properties:
+            lat: { type: number }
+            lon: { type: number }
+            accuracy: { type: number }
+            spoofed: { type: boolean }
+        timestamp:  { type: string, format: date-time }
+        device_id:  { type: string }
+        agent_id:   { type: string }
+
+    NVINAnalysisResponse:
+      type: object
+      properties:
+        hotlist_match:        { type: boolean }
+        anomaly_score:        { type: number, minimum: 0, maximum: 1 }
+        recovery_likelihood:  { type: number, minimum: 0, maximum: 1 }
+        route_risk:           { type: number, minimum: 0, maximum: 1 }
+        recommended_action:
+          type: string
+          enum: [NO_ACTION, MONITOR, ALERT, IMMEDIATE_RESPONSE, UPLOAD_EVIDENCE, TRIGGER_DTA]
+        alert_level:
+          type: string
+          enum: [GREEN, YELLOW, ORANGE, RED]
+        chain_hash:  { type: string }
+        vehicle_info:
+          type: object
+          nullable: true
+          properties:
+            make:  { type: string }
+            model: { type: string }
+            year:  { type: integer }
+            color: { type: string }
+            case_number: { type: string }
+
+    DTAPayoutRequest:
+      type: object
+      required: [plate_hash, agent_address, evidence_hash, confidence]
+      properties:
+        plate_hash:     { type: string, description: 'SHA-256 of plate text (hex)' }
+        agent_address:  { type: string, description: 'Ethereum wallet address' }
+        evidence_hash:  { type: string, description: 'SHA-256 of evidence bundle' }
+        confidence:     { type: number, minimum: 85, maximum: 100 }
+
+    DTAPayoutResponse:
+      type: object
+      properties:
+        transaction_hash: { type: string }
+        payout_amount:    { type: string, description: 'ETH amount as decimal string' }
+        tcr_reward:       { type: string, description: 'TCR token amount' }
+        block_number:     { type: integer }
+
+    SwarmRegistrationRequest:
+      type: object
+      required: [node_ids, agent_id]
+      properties:
+        node_ids:
+          type: array
+          items: { type: string }
+          minItems: 1
+          maxItems: 12
+        target_plate: { type: string, nullable: true }
+        agent_id:     { type: string }
+
+    SwarmRegistrationResponse:
+      type: object
+      properties:
+        swarm_id:                { type: string }
+        coverage_area:           { type: number, description: 'Coverage area in m²' }
+        estimated_battery_hours: { type: number }
+        node_count:              { type: integer }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
