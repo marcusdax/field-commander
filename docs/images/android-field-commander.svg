@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" font-family="'Roboto', 'Noto Sans', system-ui, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c0f14"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2842"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="asphalt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f2a3d"/>
+      <stop offset="1" stop-color="#080c16"/>
+    </linearGradient>
+    <linearGradient id="car2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#334a6e"/>
+      <stop offset="1" stop-color="#0e1624"/>
+    </linearGradient>
+    <filter id="softshadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="b"/>
+      <feOffset dy="8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <g font-size="12" fill="#3b4456" letter-spacing="3">
+    <text x="40" y="40">INSIGHTLPR  ·  ANDROID  ·  MATERIAL YOU · DARK</text>
+    <text x="1360" y="40" text-anchor="end">FIELD COMMANDER · NVIN · 2026</text>
+  </g>
+  <g filter="url(#softshadow)" transform="translate(100,110)">
+    <rect x="0" y="0" width="1200" height="620" rx="62" fill="#0a0d13" stroke="#2a3040" stroke-width="2"/>
+    <rect x="30" y="20" width="80" height="580" rx="38" fill="#161b22" opacity="0.7"/>
+    <g transform="translate(70,160)"><circle cx="0" cy="0" r="22" fill="#0a0d13" stroke="#2a3040"/><circle cx="0" cy="0" r="14" fill="#0f151f"/><circle cx="0" cy="0" r="6" fill="#1b2430"/><circle cx="-3" cy="-3" r="2" fill="#7aa2ff" opacity="0.7"/></g>
+    <g transform="translate(70,240)"><circle cx="0" cy="0" r="22" fill="#0a0d13" stroke="#2a3040"/><circle cx="0" cy="0" r="14" fill="#0f151f"/><circle cx="0" cy="0" r="6" fill="#1b2430"/></g>
+    <g transform="translate(70,320)"><circle cx="0" cy="0" r="12" fill="#0f151f"/><circle cx="0" cy="0" r="5" fill="#2a3340"/></g>
+    <text x="70" y="440" text-anchor="middle" fill="#2a3040" font-size="9" letter-spacing="2">◉ LED</text>
+    <g transform="translate(140,24)">
+      <rect x="0" y="0" width="1030" height="572" rx="30" fill="#000"/>
+      <rect x="0" y="0" width="1030" height="28" fill="#0a0d13"/>
+      <g font-size="12" fill="#e6e9ef" letter-spacing="0.8">
+        <text x="16" y="19">14:27</text>
+        <text x="72" y="19" fill="#8b95a7">·  Pixel 8 Pro  ·  5G SA</text>
+      </g>
+      <g transform="translate(880,8)" fill="#e6e9ef">
+        <text x="0" y="11" font-size="11">▲</text>
+        <text x="20" y="11" font-size="11">VPN</text>
+        <text x="58" y="11" font-size="11">●●●</text>
+        <text x="90" y="11" font-size="11">87%</text>
+        <rect x="120" y="2" width="24" height="11" rx="2" fill="none" stroke="#e6e9ef"/>
+        <rect x="122" y="4" width="19" height="7" fill="#22c55e"/>
+      </g>
+      <rect x="0" y="28" width="1030" height="56" fill="#0f141c"/>
+      <g fill="#e6e9ef">
+        <text x="16" y="62" font-size="22" letter-spacing="0.5">☰</text>
+        <circle cx="60" cy="56" r="10" fill="#00e676"/>
+        <text x="60" y="60" text-anchor="middle" font-size="12" fill="#052a0f" font-weight="700">●</text>
+        <text x="84" y="52" font-size="17" font-weight="600">Field Commander</text>
+        <text x="84" y="72" font-size="11" fill="#8b95a7">InsightLPR · Patrol Shift 03 · Unit 4472</text>
+        <text x="940" y="62" font-size="20">⚙</text>
+        <text x="980" y="62" font-size="20">⋮</text>
+      </g>
+      <g transform="translate(0,84)">
+        <rect x="0" y="0" width="670" height="410" fill="url(#sky2)"/>
+        <rect x="0" y="250" width="670" height="160" fill="url(#asphalt)"/>
+        <g fill="#e6e9ef" opacity="0.35">
+          <rect x="60"  y="332" width="50" height="6"/>
+          <rect x="170" y="345" width="70" height="7"/>
+          <rect x="300" y="360" width="90" height="8"/>
+          <rect x="460" y="378" width="110" height="9"/>
+        </g>
+        <g transform="translate(160,170)">
+          <rect x="0" y="40" width="340" height="150" rx="20" fill="url(#car2)" stroke="#05080e" stroke-width="2"/>
+          <rect x="25" y="60" width="290" height="55" rx="10" fill="#090e18" opacity="0.9"/>
+          <rect x="40" y="72" width="115" height="35" rx="3" fill="#1a2336"/>
+          <rect x="170" y="72" width="135" height="35" rx="3" fill="#1a2336"/>
+          <circle cx="60" cy="195" r="22" fill="#05080e"/>
+          <circle cx="280" cy="195" r="22" fill="#05080e"/>
+          <ellipse cx="8" cy="130" rx="10" ry="16" fill="#ffe9a8" opacity="0.75"/>
+          <rect x="135" y="160" width="110" height="24" rx="3" fill="#f5f7fa" stroke="#cbd5e1"/>
+          <text x="190" y="178" text-anchor="middle" font-size="15" font-weight="800" fill="#0f172a" letter-spacing="2" font-family="ui-monospace,monospace">8RNK 311</text>
+        </g>
+        <g>
+          <rect x="285" y="322" width="120" height="30" rx="3" fill="none" stroke="#00e676" stroke-width="2.5"/>
+          <g stroke="#00e676" stroke-width="3" fill="none">
+            <path d="M285 328 L285 322 L291 322"/>
+            <path d="M399 322 L405 322 L405 328"/>
+            <path d="M285 346 L285 352 L291 352"/>
+            <path d="M399 352 L405 352 L405 346"/>
+          </g>
+          <rect x="287" y="335" width="116" height="1.5" fill="#00e676" opacity="0.9"/>
+        </g>
+        <g>
+          <rect x="16" y="16" width="120" height="26" rx="13" fill="#0a0d13" fill-opacity="0.85" stroke="#00e676"/>
+          <circle cx="30" cy="29" r="4" fill="#00e676"/>
+          <text x="42" y="33" font-size="12" fill="#c7f9d9" font-weight="600">OCR  0.96</text>
+        </g>
+        <g>
+          <rect x="144" y="16" width="110" height="26" rx="13" fill="#0a0d13" fill-opacity="0.85" stroke="#7dd3fc"/>
+          <text x="199" y="33" text-anchor="middle" font-size="12" fill="#bae6fd" font-weight="600">KDA 0.18 ✓</text>
+        </g>
+        <g transform="translate(530,16)">
+          <rect x="0" y="0" width="124" height="26" rx="13" fill="#0a0d13" fill-opacity="0.85" stroke="#ef4444"/>
+          <circle cx="14" cy="13" r="5" fill="#ef4444"/>
+          <text x="26" y="17" font-size="12" fill="#fecaca" font-weight="700">REC  00:14:27</text>
+        </g>
+        <g stroke="#e6e9ef" stroke-opacity="0.05">
+          <line x1="223" y1="0" x2="223" y2="410"/>
+          <line x1="446" y1="0" x2="446" y2="410"/>
+          <line x1="0" y1="137" x2="670" y2="137"/>
+          <line x1="0" y1="273" x2="670" y2="273"/>
+        </g>
+        <rect x="0" y="340" width="670" height="70" fill="#0a0d13" fill-opacity="0.55"/>
+        <g>
+          <circle cx="335" cy="375" r="24" fill="none" stroke="#e6e9ef" stroke-width="3"/>
+          <circle cx="335" cy="375" r="18" fill="#e6e9ef"/>
+          <text x="100" y="380" font-size="12" fill="#8b95a7">⚡ MAGIC MOMENT</text>
+          <text x="540" y="380" font-size="12" fill="#8b95a7">🛰 GHOST MODE</text>
+        </g>
+      </g>
+      <g transform="translate(686,98)">
+        <rect x="0" y="0" width="330" height="178" rx="14" fill="#0f141c" stroke="#1f2a3d"/>
+        <rect x="0" y="0" width="4" height="178" rx="2" fill="#00e676"/>
+        <text x="18" y="20" font-size="11" fill="#8b95a7" letter-spacing="1.5">DETECTION · 14:27:03</text>
+        <text x="18" y="52" font-size="28" font-weight="800" fill="#e6e9ef" letter-spacing="3" font-family="ui-monospace,monospace">8RNK 311</text>
+        <text x="18" y="74" font-size="12" fill="#c7f9d9">✓  CLEAR · NCIC · DMV MATCH</text>
+        <g font-size="11" fill="#8b95a7">
+          <text x="18" y="100">NADE</text><rect x="60" y="92" width="120" height="8" rx="4" fill="#1f2a3d"/><rect x="60" y="92" width="22" height="8" rx="4" fill="#00e676"/><text x="190" y="100" fill="#e6e9ef">0.18</text>
+          <text x="18" y="120">GIE </text><rect x="60" y="112" width="120" height="8" rx="4" fill="#1f2a3d"/><rect x="60" y="112" width="14" height="8" rx="4" fill="#00e676"/><text x="190" y="120" fill="#e6e9ef">0.11</text>
+          <text x="18" y="140">BNE </text><rect x="60" y="132" width="120" height="8" rx="4" fill="#1f2a3d"/><rect x="60" y="132" width="28" height="8" rx="4" fill="#00e676"/><text x="190" y="140" fill="#e6e9ef">0.23</text>
+        </g>
+        <rect x="18" y="150" width="295" height="18" rx="4" fill="#052a0f" stroke="#00e676"/>
+        <text x="165" y="164" text-anchor="middle" font-size="11" fill="#c7f9d9" font-weight="700">KDA FUSED 0.18  ·  AUTO-LOGGED</text>
+        <rect x="0" y="190" width="330" height="120" rx="14" fill="#0f141c" stroke="#1f2a3d"/>
+        <text x="18" y="210" font-size="11" fill="#8b95a7" letter-spacing="1.5">DTA PAYOUT QUEUE</text>
+        <g font-size="12" fill="#e6e9ef">
+          <text x="18" y="234">7XJR 482</text><text x="180" y="234" fill="#fca5a5">Tier II · 1.5×</text><text x="310" y="234" text-anchor="end" fill="#86efac">✓ paid</text>
+          <text x="18" y="256">4GMC 770</text><text x="180" y="256" fill="#fde68a">Tier I · 1.0×</text><text x="310" y="256" text-anchor="end" fill="#fde68a">pending</text>
+          <text x="18" y="278">9PLE 221</text><text x="180" y="278" fill="#bae6fd">Tier III · 2.0×</text><text x="310" y="278" text-anchor="end" fill="#86efac">✓ paid</text>
+        </g>
+        <text x="18" y="300" font-size="10" fill="#8b95a7">ETH earned today · 0.042 · tx 0x7b2…fa19</text>
+        <rect x="0" y="324" width="330" height="140" rx="14" fill="#0f141c" stroke="#1f2a3d"/>
+        <text x="18" y="344" font-size="11" fill="#8b95a7" letter-spacing="1.5">LUMINNODE SWARM · 7/7</text>
+        <g>
+          <circle cx="165" cy="400" r="10" fill="#00e676"/>
+          <text x="165" y="404" text-anchor="middle" font-size="9" fill="#052a0f" font-weight="700">P</text>
+          <g fill="#7dd3fc">
+            <circle cx="120" cy="380" r="6"/><circle cx="210" cy="380" r="6"/>
+            <circle cx="95"  cy="420" r="6"/><circle cx="235" cy="420" r="6"/>
+            <circle cx="140" cy="440" r="6"/><circle cx="190" cy="440" r="6"/>
+          </g>
+          <g stroke="#7dd3fc" stroke-opacity="0.35" fill="none">
+            <line x1="165" y1="400" x2="120" y2="380"/><line x1="165" y1="400" x2="210" y2="380"/>
+            <line x1="165" y1="400" x2="95"  y2="420"/><line x1="165" y1="400" x2="235" y2="420"/>
+            <line x1="165" y1="400" x2="140" y2="440"/><line x1="165" y1="400" x2="190" y2="440"/>
+          </g>
+        </g>
+        <text x="165" y="458" text-anchor="middle" font-size="10" fill="#8b95a7">BLE MESH · -58 dBm · latency 21 ms</text>
+      </g>
+      <g transform="translate(0,494)">
+        <rect x="0" y="0" width="1030" height="78" fill="#0a0d13" stroke="#1f2a3d"/>
+        <g font-size="11" text-anchor="middle">
+          <g transform="translate(103,0)"><rect x="-32" y="10" width="64" height="32" rx="16" fill="#1a4a2a"/><text x="0" y="30" fill="#c7f9d9" font-size="16">◉</text><text x="0" y="60" fill="#c7f9d9" font-weight="700">Scan</text></g>
+          <g transform="translate(309,0)" fill="#8b95a7"><text x="0" y="32" font-size="16">▤</text><text x="0" y="60">Log</text></g>
+          <g transform="translate(515,0)" fill="#8b95a7"><text x="0" y="32" font-size="16">▣</text><text x="0" y="60">DTA</text></g>
+          <g transform="translate(721,0)" fill="#8b95a7"><text x="0" y="32" font-size="16">🛰</text><text x="0" y="60">Swarm</text></g>
+          <g transform="translate(927,0)" fill="#8b95a7"><text x="0" y="32" font-size="16">◈</text><text x="0" y="60">Ghost</text></g>
+        </g>
+      </g>
+      <rect x="450" y="562" width="130" height="4" rx="2" fill="#2a3040"/>
+    </g>
+  </g>
+  <g font-size="13" fill="#8b95a7">
+    <text x="1340" y="180" text-anchor="end" fill="#00e676" font-weight="700" letter-spacing="1.5">TFLITE OCR · &lt;200 ms</text>
+    <text x="1340" y="202" text-anchor="end">MobileNetV3 + CTC · GPU delegate</text>
+    <text x="1340" y="360" text-anchor="end" fill="#7dd3fc" font-weight="700" letter-spacing="1.5">KDA FUSION</text>
+    <text x="1340" y="382" text-anchor="end">NADE 35% · GIE 30% · BNE 35%</text>
+    <text x="1340" y="540" text-anchor="end" fill="#fde68a" font-weight="700" letter-spacing="1.5">CITIZENLEDGER DTA</text>
+    <text x="1340" y="562" text-anchor="end">Auto-payout · Polygon L2</text>
+    <text x="60" y="180" fill="#7dd3fc" font-weight="700" letter-spacing="1.5">GHOST MODE</text>
+    <text x="60" y="202" fill="#8b95a7">Tor · Kyber-1024 · GPS spoof</text>
+    <text x="60" y="360" fill="#00e676" font-weight="700" letter-spacing="1.5">LUMINNODE MESH</text>
+    <text x="60" y="382" fill="#8b95a7">BLE · up to 12 nodes</text>
+    <text x="60" y="540" fill="#e6e9ef" font-weight="700" letter-spacing="1.5">MAGIC MOMENT</text>
+    <text x="60" y="562" fill="#8b95a7">15 s evidence buffer · SHA-256 sealed</text>
+  </g>
+  <text x="700" y="870" text-anchor="middle" font-size="14" fill="#4b5568" letter-spacing="4">FIELD COMMANDER · ANDROID REFERENCE BUILD · v2.4</text>
+</svg>
