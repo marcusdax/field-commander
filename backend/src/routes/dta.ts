@@ -1,54 +1,58 @@
-/**
- * DTA API Route — POST /v1/dta/payout
- * Triggers CitizenLedgerDTA smart contract payout on Polygon.
- */
+import { Router } from 'express';
+import { DTAService } from '../services/DTAService';
+import { db } from '../db/client';
+import type { DTAPayoutRequest } from '../../../mobile-app/src/types/nvin';
 
-import type { Request, Response } from 'express';
-import { ethers } from 'ethers';
+export const dtaRouter = Router();
+const dta = new DTAService();
 
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS ?? '';
-const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL ?? 'https://polygon-rpc.com';
-
-// ABI fragment — only the verifyRecovery function needed here
-const ABI = [
-  'function verifyRecovery(bytes32 plateHash, address agent, bytes32 evidenceHash, uint8 confidence) external',
-  'event PayoutExecuted(bytes32 indexed plateHash, address indexed agent, uint256 amount)',
-];
-
-export async function requestDTAPayout(req: Request, res: Response): Promise<void> {
-  const { plate_hash, agent_address, evidence_hash, confidence } = req.body as Record<string, unknown>;
-
-  if (!plate_hash || !agent_address || !evidence_hash || typeof confidence !== 'number') {
-    res.status(400).json({ error: 'plate_hash, agent_address, evidence_hash, and confidence are required' });
-    return;
-  }
-
-  if ((confidence as number) < 85) {
-    res.status(422).json({ error: 'Confidence below minimum threshold (85)' });
-    return;
-  }
-
+dtaRouter.post('/payout', async (req, res) => {
   try {
-    const provider = new ethers.JsonRpcProvider(POLYGON_RPC_URL);
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    const body = req.body as DTAPayoutRequest;
+    if (!body.plateHash || !body.agentAddress || !body.evidenceHash) {
+      return res.status(400).json({ error: 'plateHash, agentAddress, evidenceHash required' });
+    }
+    if (body.confidence < 0.85) {
+      return res.status(422).json({ error: 'Confidence below 85% threshold' });
+    }
 
-    const tx = await contract.verifyRecovery(
-      plate_hash,
-      agent_address,
-      evidence_hash,
-      Math.round(confidence as number)
-    );
-    const receipt = await tx.wait();
+    const result = await dta.processPayout(body);
 
-    res.json({
-      transaction_hash: receipt.hash,
-      payout_amount: ethers.formatEther(receipt.logs?.[0]?.data ?? '0'),
-      tcr_reward: '0',   // populated from contract event in production
-      block_number: receipt.blockNumber,
+    db('recoveries')
+      .where({ plate_hash: body.plateHash })
+      .update({
+        dta_tx_hash: result.transactionHash,
+        payout_eth: result.payoutAmountEth,
+        tcr_reward: result.tcrReward,
+        status: 'PAID',
+        verified_at: db.fn.now(),
+      }).catch((err: Error) => console.warn('[DTA] DB update failed:', err.message));
+
+    return res.json(result);
+  } catch (err) {
+    console.error('[DTA] payout error:', err);
+    return res.status(500).json({ error: 'Payout failed' });
+  }
+});
+
+dtaRouter.get('/earnings/:agentAddress', async (req, res) => {
+  try {
+    const { agentAddress } = req.params;
+    const rows = await db('recoveries')
+      .where({ agent_id: agentAddress, status: 'PAID' })
+      .select('payout_eth', 'tcr_reward');
+
+    const totalEth = rows.reduce((s: number, r: { payout_eth: string }) => s + parseFloat(r.payout_eth ?? '0'), 0);
+    const totalTcr = rows.reduce((s: number, r: { tcr_reward: string }) => s + parseFloat(r.tcr_reward ?? '0'), 0);
+
+    return res.json({
+      agentAddress,
+      totalEthEarned: totalEth.toFixed(8),
+      totalTcrEarned: totalTcr.toFixed(8),
+      recoveriesCount: rows.length,
     });
   } catch (err) {
-    console.error('[DTA route] Error:', err);
-    res.status(500).json({ error: 'Payout execution failed' });
+    console.error('[DTA] earnings error:', err);
+    return res.status(500).json({ error: 'Earnings lookup failed' });
   }
-}
+});

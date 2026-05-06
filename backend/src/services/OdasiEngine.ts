@@ -1,89 +1,129 @@
 /**
  * OdasiEngine — NADE, GIE, BNE, KDA AI engine wrappers
- * Encapsulates the four Odasi intelligence modules used by InsightLPR.
+ * Production: HTTP fan-out to Odasi microservices + Redis hotlist.
+ * Dev:        ODASI_MOCK=true for deterministic local outputs.
  */
 
-import type {
-  NVINAnalysisRequest,
-  NADEOutput,
-  GIEOutput,
-  BNEOutput,
-  KDAFusionOutput,
-  ActionCode,
-} from '../../mobile-app/src/types/nvin';
+import Redis from 'ioredis';
+import crypto from 'crypto';
+import type { NVINAnalysisRequest, NADEOutput, GIEOutput, BNEOutput, KDAFusionOutput, ActionCode } from '../../mobile-app/src/types/nvin';
 
-interface FuseInput {
-  nade: NADEOutput;
-  gie: GIEOutput;
-  bne: BNEOutput;
+// ─── Redis client (lazy connect) ─────────────────────────────────────────────
+const redis = new Redis({
+  host: process.env['REDIS_HOST'] ?? 'localhost',
+  port: parseInt(process.env['REDIS_PORT'] ?? '6379', 10),
+  password: process.env['REDIS_PASSWORD'],
+  lazyConnect: true,
+  enableOfflineQueue: false,
+  retryStrategy: (times) => Math.min(times * 150, 3000),
+});
+redis.on('error', (err: Error) => {
+  if (process.env['NODE_ENV'] !== 'test') console.error('[Redis]', err.message);
+});
+
+function plateHash(plateText: string): string {
+  return crypto.createHash('sha256').update(plateText.toUpperCase().trim()).digest('hex');
 }
 
+async function postWithTimeout(url: string, body: unknown, ms = 5000): Promise<unknown> {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+// ─── Deterministic dev mocks ──────────────────────────────────────────────────
+function mockNADE(req: NVINAnalysisRequest): NADEOutput {
+  const base = req.confidence * 0.8;
+  return {
+    anomalyScore: Math.min(1, base + 0.05),
+    anomalyType: base > 0.7 ? 'ROUTE_DEVIATION' : 'NONE',
+    confidence: req.confidence,
+    features: base > 0.7 ? ['speed_anomaly', 'repeat_sighting'] : [],
+  };
+}
+
+function mockGIE(req: NVINAnalysisRequest): GIEOutput {
+  const latR = (req.geolocation.lat * Math.PI) / 180;
+  const lonR = (req.geolocation.lon * Math.PI) / 180;
+  const risk = (Math.sin(latR * 7) * Math.cos(lonR * 3) + 1) / 2;
+  return {
+    geospatialRisk: Number(risk.toFixed(4)),
+    predictedRoute: risk > 0.6 ? ['I-95 N', 'Exit 42'] : [],
+    hotZones: [],
+  };
+}
+
+function mockBNE(req: NVINAnalysisRequest): BNEOutput {
+  return {
+    behaviorLabel: req.confidence > 0.88 ? 'HIGH_VALUE_TARGET' : 'ROUTINE_SCAN',
+    intentScore: req.confidence * 0.9,
+    recoveryLikelihood: req.confidence * 0.85,
+  };
+}
+
+// ─── OdasiEngine ─────────────────────────────────────────────────────────────
 export class OdasiEngine {
-  /**
-   * NADE — Neuromorphic Anomaly Detection Engine
-   * Detects behavioural anomalies in plate scan patterns.
-   */
+  private get isMock(): boolean {
+    return process.env['ODASI_MOCK'] === 'true' || process.env['NODE_ENV'] === 'test';
+  }
+
   async runNADE(req: NVINAnalysisRequest): Promise<NADEOutput> {
-    // Production: POST to Odasi NADE microservice
-    // const resp = await fetch(`${ODASI_URL}/nade`, { method: 'POST', body: JSON.stringify(req) });
-    return {
-      anomalyScore: this.scoreFromConfidence(req.confidence),
-      anomalyType: 'ROUTE_DEVIATION',
-      confidence: req.confidence,
-      features: ['speed_anomaly', 'repeat_sighting'],
-    };
+    const url = process.env['ODASI_NADE_URL'];
+    if (!url || this.isMock) return mockNADE(req);
+    return postWithTimeout(url, req) as Promise<NADEOutput>;
   }
 
-  /**
-   * GIE — Geospatial Intelligence Engine
-   * Maps plate sightings to high-risk geo clusters.
-   */
   async runGIE(req: NVINAnalysisRequest): Promise<GIEOutput> {
-    // Production: spatial query against PostGIS hotzone database
-    return {
-      geospatialRisk: this.geoRisk(req.geolocation.lat, req.geolocation.lon),
-      predictedRoute: ['I-95 N', 'Exit 42'],
-      hotZones: [],
-    };
+    const url = process.env['ODASI_GIE_URL'];
+    if (!url || this.isMock) return mockGIE(req);
+    return postWithTimeout(url, req) as Promise<GIEOutput>;
   }
 
-  /**
-   * BNE — Behavioural Network Engine
-   * Predicts recovery likelihood from network graph features.
-   */
   async runBNE(req: NVINAnalysisRequest): Promise<BNEOutput> {
-    // Production: graph neural network inference
-    return {
-      behaviorLabel: 'HIGH_VALUE_TARGET',
-      intentScore: req.confidence * 0.9,
-      recoveryLikelihood: req.confidence * 0.85,
-    };
+    const url = process.env['ODASI_BNE_URL'];
+    if (!url || this.isMock) return mockBNE(req);
+    return postWithTimeout(url, req) as Promise<BNEOutput>;
   }
 
-  /**
-   * KDA — Knowledge-Driven Arbitration (fusion layer)
-   */
-  fuseKDA({ nade, gie, bne }: FuseInput): KDAFusionOutput {
-    const unifiedScore = (nade.anomalyScore * 0.35 + gie.geospatialRisk * 0.30 + bne.intentScore * 0.35);
-    const recommendedAction = this.recommendAction(unifiedScore, bne.recoveryLikelihood);
-    return { nade, gie, bne, unifiedScore, recommendedAction };
+  fuseKDA({ nade, gie, bne }: { nade: NADEOutput; gie: GIEOutput; bne: BNEOutput }): KDAFusionOutput {
+    const unifiedScore = nade.anomalyScore * 0.35 + gie.geospatialRisk * 0.30 + bne.intentScore * 0.35;
+    return { nade, gie, bne, unifiedScore, recommendedAction: this.recommendAction(unifiedScore, bne.recoveryLikelihood) };
   }
 
   async checkHotlist(plateText: string): Promise<boolean> {
-    // Production: Redis hotlist lookup by SHA-256(plateText)
-    // const hash = crypto.createHash('sha256').update(plateText).digest('hex');
-    // return redisClient.sIsMember('hotlist', hash);
-    return false;
+    try {
+      const hash = plateHash(plateText);
+      const hit = await redis.sismember('hotlist:plates', hash);
+      return hit === 1;
+    } catch {
+      return false;
+    }
   }
 
-  // ---------------------------------------------------------------------------
-  private scoreFromConfidence(conf: number): number {
-    return Math.min(1, conf * 0.8 + Math.random() * 0.1);
-  }
-
-  private geoRisk(lat: number, lon: number): number {
-    // Placeholder: real impl uses PostGIS spatial join with risk polygons
-    return Math.abs(Math.sin(lat * lon)) % 1;
+  async getGeoRisk(lat: number, lon: number): Promise<number> {
+    try {
+      // GEORADIUS: find hotzone members within 50 km
+      const nearby = await redis.call(
+        'GEORADIUS', 'geo:hotzones', String(lon), String(lat), '50', 'km', 'COUNT', '10'
+      ) as string[];
+      if (!nearby.length) return 0.1;
+      return Math.min(1, 0.2 + nearby.length * 0.15);
+    } catch {
+      const latR = (lat * Math.PI) / 180;
+      const lonR = (lon * Math.PI) / 180;
+      return (Math.sin(latR * 7) * Math.cos(lonR * 3) + 1) / 2;
+    }
   }
 
   private recommendAction(score: number, recovery: number): ActionCode {
