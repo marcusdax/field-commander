@@ -1,51 +1,102 @@
-version: '3.8'
+# Nexus Edge Substrate + Field Commander — Local Dev Stack
+#
+# Beta golden path:
+#   1. android phone POSTs plate scan to edge-substrate /v1/nvin/ocr/submit
+#   2. edge-substrate creates nvin_fusion job → scheduler dispatches to device
+#   3. device (or server inline) executes KDA fusion + hotlist check
+#   4. hotlistMatch=true → edge-substrate calls backend /api/dta/payout
+#   5. backend calls CitizenLedgerDTA.verifyRecovery (mock in dev)
+#   6. DTA:payout WebSocket event fires → dashboard updates
+#
+# Quick start:
+#   docker compose up -d
+#   cd backend && ts-node scripts/seed-hotlist.ts   # seed Redis
+#   open http://localhost:3002/v1/dashboard
+
+version: '3.9'
 
 services:
-  signaling:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports: ['5432:5432']
     environment:
-      - NODE_ENV=development
-      - REDIS_URL=redis://redis:6379
-      - PORT=3001
-    depends_on:
-      - redis
-      - tor-bridge
-    networks:
-      - field-commander
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+    volumes: [pg_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout:  5s
+      retries:  10
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - field-commander
-    volumes:
-      - redis-data:/data
+    restart: unless-stopped
+    ports: ['6379:6379']
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout:  5s
+      retries:  10
 
-  tor-bridge:
-    image: goldy/tor:1.0
-    ports:
-      - "9050:9050"
-    networks:
-      - field-commander
-    volumes:
-      - tor-data:/var/lib/tor
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: ['3001:3001']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    environment:
+      NODE_ENV:             development
+      PORT:                 3001
+      DB_HOST:              postgres
+      DB_PORT:              5432
+      DB_NAME:              field_commander
+      DB_USER:              postgres
+      DB_PASSWORD:          postgres
+      REDIS_HOST:           redis
+      REDIS_PORT:           6379
+      ODASI_MOCK:           'true'
+      CHAIN_MOCK:           'true'
+      DTA_MOCK:             'true'
+      EDGE_SUBSTRATE_URL:   http://edge-substrate:3002
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3001/health || exit 1']
+      interval: 10s
+      timeout:  5s
+      retries:  5
 
-  tor-proxy:
-    image: osminogin/tor-simple
-    ports:
-      - "8118:8118"
-    networks:
-      - field-commander
-
-networks:
-  field-commander:
-    driver: bridge
+  edge-substrate:
+    build:
+      context: ./edge-substrate
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: ['3002:3002']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    environment:
+      NODE_ENV:           development
+      PORT:               3002
+      DB_HOST:            postgres
+      DB_PORT:            5432
+      DB_NAME:            edge_substrate
+      DB_USER:            postgres
+      DB_PASSWORD:        postgres
+      REDIS_HOST:         redis
+      REDIS_PORT:         6379
+      NVIN_BACKEND_URL:   http://backend:3001
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3002/health || exit 1']
+      interval: 10s
+      timeout:  5s
+      retries:  5
 
 volumes:
-  redis-data:
-  tor-data:
+  pg_data:
+  redis_data:
