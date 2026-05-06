@@ -1,0 +1,29 @@
+{
+  "name": "edge-substrate",
+  "version": "1.0.0-beta",
+  "description": "Nexus Edge Substrate — Distributed Compute Mesh for NVIN Workloads",
+  "main": "dist/server.js",
+  "scripts": {
+    "start":   "node dist/server.js",
+    "dev":     "ts-node src/server.ts",
+    "build":   "tsc",
+    "migrate": "ts-node -e \"require('./src/db/migrations/001_edge_substrate').up(require('./src/db/client').db)\""
+  },
+  "dependencies": {
+    "express":  "^4.18.2",
+    "socket.io": "^4.7.0",
+    "ioredis":  "^5.3.0",
+    "pg":       "^8.11.0",
+    "knex":     "^3.1.0",
+    "cors":     "^2.8.5",
+    "dotenv":   "^16.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/cors":    "^2.8.0",
+    "@types/pg":      "^8.10.0",
+    "@types/node":    "^20.10.0",
+    "typescript":     "^5.3.0",
+    "ts-node":        "^10.9.0"
+  }
+}
