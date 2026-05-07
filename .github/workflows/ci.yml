@@ -7,16 +7,12 @@ on:
     branches: [main]
 
 env:
-  HUSKY: '0'          # prevent husky install from failing in CI
-  NODE_AUTH_TOKEN: ''
+  HUSKY: '0'
 
 jobs:
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # 1. Lint all workspaces
-  # ──────────────────────────────────────────────────────────────────────────
   lint-and-test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -25,10 +21,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install root dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
         run: npm install --legacy-peer-deps
-        env:
-          HUSKY: '0'
+
+      - name: Install web-client dependencies
+        working-directory: ./web-client
+        run: npm install --legacy-peer-deps
 
       - name: Lint mobile-app
         working-directory: ./mobile-app
@@ -42,16 +41,10 @@ jobs:
         working-directory: ./backend
         run: npm run lint || true
 
-      - name: Lint edge-substrate
-        working-directory: ./edge-substrate
-        run: npm run lint || true
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # 2. Mobile (Android + iOS skeleton)
-  # ──────────────────────────────────────────────────────────────────────────
   build-mobile:
     needs: lint-and-test
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -60,28 +53,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install mobile-app dependencies
+      - name: Install dependencies
         working-directory: ./mobile-app
         run: npm install --legacy-peer-deps
 
-      - name: Check TypeScript
+      - name: TypeScript check
         working-directory: ./mobile-app
         run: npx tsc --noEmit || true
 
-      - name: Android build (SDK required in full CI)
+      - name: Build Android
         run: |
           if [ -d mobile-app/android ]; then
-            cd mobile-app/android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon || echo "[skip] Android SDK not available in this runner"
+            cd mobile-app/android
+            chmod +x gradlew
+            ./gradlew assembleDebug --no-daemon || echo "Build would require Android SDK"
           else
-            echo "[skip] android/ directory not yet present"
+            echo "Android directory not found, skipping"
           fi
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 3. Smart contracts: compile + unit tests on in-memory hardhat node
-  # ──────────────────────────────────────────────────────────────────────────
+      - name: Build iOS
+        run: |
+          if [ -d mobile-app/ios ]; then
+            cd mobile-app/ios
+            pod install || echo "iOS build would require macOS"
+          else
+            echo "iOS directory not found, skipping"
+          fi
+
   build-contracts:
     needs: lint-and-test
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -90,24 +92,22 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install blockchain dependencies
+      - name: Install dependencies
         working-directory: ./blockchain
         run: npm install --legacy-peer-deps
 
-      - name: Compile contracts + generate TypeChain
+      - name: Compile contracts
         working-directory: ./blockchain
         run: npx hardhat compile
 
-      - name: Run contract unit tests (in-memory EVM)
+      - name: Run tests
         working-directory: ./blockchain
         run: npx hardhat test
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 4. Web dashboard: TypeScript build
-  # ──────────────────────────────────────────────────────────────────────────
   build-web:
     needs: lint-and-test
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -116,23 +116,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install web-client dependencies
+      - name: Install dependencies
         working-directory: ./web-client
         run: npm install --legacy-peer-deps
 
-      - name: Build production bundle
+      - name: Build
         working-directory: ./web-client
         run: npm run build
         env:
-          CI: 'false'     # treat warnings as non-fatal
+          CI: 'false'
           GENERATE_SOURCEMAP: 'false'
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 5. Edge Substrate service: TypeScript compile
-  # ──────────────────────────────────────────────────────────────────────────
   build-edge-substrate:
     needs: lint-and-test
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -141,10 +139,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install edge-substrate dependencies
+      - name: Install dependencies
         working-directory: ./edge-substrate
         run: npm install --legacy-peer-deps
 
-      - name: TypeScript compile check
+      - name: TypeScript check
         working-directory: ./edge-substrate
         run: npx tsc --noEmit
