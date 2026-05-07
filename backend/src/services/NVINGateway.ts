@@ -1,35 +1,34 @@
 /**
- * NVINGateway — Server-side InsightLPR / Odasi integration
- * Receives plate captures from mobile agents and fans out to Odasi AI engines.
+ * NVINGateway — NVIN plate analysis orchestrator
+ * Real Polygon evidence anchoring via ethers.js v6 + EvidenceLedger.sol.
+ * Set CHAIN_MOCK=true to bypass on-chain calls in local dev.
  */
 
-import type {
-  NVINAnalysisRequest,
-  NVINAnalysisResponse,
-  KDAFusionOutput,
-  ActionCode,
-  AlertLevel,
-} from '../../mobile-app/src/types/nvin';
+import { ethers } from 'ethers';
+import type { NVINAnalysisRequest, NVINAnalysisResponse, KDAFusionOutput, AlertLevel } from '../../mobile-app/src/types/nvin';
 import { OdasiEngine } from './OdasiEngine';
 
-export class NVINGateway {
-  private odasi: OdasiEngine;
+// Inline ABI — avoids compile-time dependency on hardhat artifacts
+const EVIDENCE_LEDGER_ABI = [
+  'function anchor(bytes32 plateHash, bytes32 evidenceHash, address agent) external',
+  'event EvidenceAnchored(bytes32 indexed plateHash, bytes32 evidenceHash, uint256 timestamp, address indexed agent)',
+];
 
-  constructor() {
-    this.odasi = new OdasiEngine();
-  }
+export class NVINGateway {
+  private odasi = new OdasiEngine();
 
   async analyze(request: NVINAnalysisRequest): Promise<NVINAnalysisResponse> {
-    // Fan out to all four Odasi engines in parallel
     const [nade, gie, bne] = await Promise.all([
       this.odasi.runNADE(request),
       this.odasi.runGIE(request),
       this.odasi.runBNE(request),
     ]);
 
-    // KDA fusion
-    const kda: KDAFusionOutput = this.odasi.fuseKDA({ nade, gie, bne });
+    // Override GIE geospatialRisk with real Redis georadius if available
+    const geoRisk = await this.odasi.getGeoRisk(request.geolocation.lat, request.geolocation.lon);
+    gie.geospatialRisk = geoRisk;
 
+    const kda: KDAFusionOutput = this.odasi.fuseKDA({ nade, gie, bne });
     const hotlistMatch = await this.odasi.checkHotlist(request.plateText);
     const alertLevel = this.deriveAlertLevel(kda.unifiedScore, hotlistMatch);
     const chainHash = await this.anchorToChain(request, kda);
@@ -52,12 +51,32 @@ export class NVINGateway {
     return 'GREEN';
   }
 
-  private async anchorToChain(
-    request: NVINAnalysisRequest,
-    kda: KDAFusionOutput
-  ): Promise<string> {
-    // Production: call Polygon RPC to anchor event hash
-    const payload = JSON.stringify({ plate: request.plateText, score: kda.unifiedScore, ts: Date.now() });
-    return `chain_${Buffer.from(payload).toString('base64url').slice(0, 32)}`;
+  private async anchorToChain(request: NVINAnalysisRequest, kda: KDAFusionOutput): Promise<string> {
+    const contractAddress = process.env['EVIDENCE_LEDGER_ADDRESS'];
+    const rpcUrl = process.env['POLYGON_RPC_URL'];
+    const signerKey = process.env['BACKEND_SIGNER_KEY'];
+
+    if (!contractAddress || !rpcUrl || !signerKey || process.env['CHAIN_MOCK'] === 'true') {
+      // Dev fallback: deterministic keccak hash, no on-chain tx
+      return ethers.keccak256(
+        ethers.toUtf8Bytes(`${request.plateText}:${kda.unifiedScore.toFixed(6)}:${request.timestamp}`)
+      );
+    }
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const signer = new ethers.Wallet(signerKey, provider);
+    const contract = new ethers.Contract(contractAddress, EVIDENCE_LEDGER_ABI, signer);
+
+    const plateHashBytes = ethers.keccak256(ethers.toUtf8Bytes(request.plateText.toUpperCase()));
+    const evidenceHashBytes = ethers.keccak256(
+      ethers.toUtf8Bytes(JSON.stringify({ plate: request.plateText, kda: kda.unifiedScore, ts: request.timestamp }))
+    );
+    const agentAddr = request.agentId ?? ethers.ZeroAddress;
+
+    const tx = await (contract['anchor'] as (...args: unknown[]) => Promise<{ hash: string; wait: (n: number) => Promise<unknown> }>)(
+      plateHashBytes, evidenceHashBytes, agentAddr, { gasLimit: 100_000 }
+    );
+    await tx.wait(1);
+    return tx.hash;
   }
 }

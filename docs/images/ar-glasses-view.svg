@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1628"/>
+      <stop offset="0.55" stop-color="#122038"/>
+      <stop offset="1" stop-color="#1b2c48"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2c48"/>
+      <stop offset="1" stop-color="#050a14"/>
+    </linearGradient>
+    <linearGradient id="vehicle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a3b56"/>
+      <stop offset="1" stop-color="#0d1424"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.75">
+      <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.85"/>
+    </radialGradient>
+    <linearGradient id="hud" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00e5ff" stop-opacity="0.0"/>
+      <stop offset="0.5" stop-color="#00e5ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#00e5ff" stop-opacity="0.0"/>
+    </linearGradient>
+    <pattern id="mesh" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="skewX(-12)">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#00e5ff" stroke-opacity="0.12" stroke-width="0.6"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect y="520" width="1600" height="380" fill="url(#ground)"/>
+  <rect y="520" width="1600" height="380" fill="url(#mesh)"/>
+  <g fill="#0a1422" opacity="0.85">
+    <rect x="40"  y="420" width="90"  height="100"/>
+    <rect x="140" y="380" width="120" height="140"/>
+    <rect x="280" y="430" width="70"  height="90"/>
+    <rect x="370" y="400" width="110" height="120"/>
+    <rect x="1100" y="410" width="95" height="110"/>
+    <rect x="1210" y="370" width="140" height="150"/>
+    <rect x="1370" y="420" width="90"  height="100"/>
+    <rect x="1470" y="395" width="110" height="125"/>
+  </g>
+  <g fill="#f5c669" opacity="0.55">
+    <rect x="160" y="400" width="6" height="6"/><rect x="176" y="400" width="6" height="6"/>
+    <rect x="160" y="420" width="6" height="6"/><rect x="192" y="430" width="6" height="6"/>
+    <rect x="1230" y="395" width="6" height="6"/><rect x="1250" y="395" width="6" height="6"/>
+    <rect x="1270" y="415" width="6" height="6"/><rect x="1230" y="440" width="6" height="6"/>
+  </g>
+  <g>
+    <rect x="180" y="560" width="340" height="170" rx="18" fill="url(#vehicle)" stroke="#0a1220" stroke-width="2"/>
+    <rect x="210" y="580" width="280" height="70" rx="10" fill="#0a1424" opacity="0.9"/>
+    <rect x="225" y="595" width="110" height="45" rx="4" fill="#1a2a42" opacity="0.8"/>
+    <rect x="345" y="595" width="130" height="45" rx="4" fill="#1a2a42" opacity="0.8"/>
+    <rect x="295" y="695" width="110" height="26" rx="3" fill="#f3f4f6" stroke="#cbd5e1"/>
+    <text x="350" y="714" font-size="18" font-weight="700" text-anchor="middle" fill="#0f172a" letter-spacing="2">7XJR 482</text>
+    <circle cx="245" cy="730" r="22" fill="#05080f"/>
+    <circle cx="245" cy="730" r="10" fill="#1b2840"/>
+    <circle cx="455" cy="730" r="22" fill="#05080f"/>
+    <circle cx="455" cy="730" r="10" fill="#1b2840"/>
+    <ellipse cx="190" cy="650" rx="12" ry="18" fill="#ffe9a8" opacity="0.85"/>
+  </g>
+  <g>
+    <rect x="700" y="540" width="230" height="120" rx="14" fill="url(#vehicle)" stroke="#0a1220" stroke-width="2"/>
+    <rect x="720" y="555" width="190" height="45" rx="8" fill="#0a1424" opacity="0.9"/>
+    <rect x="775" y="630" width="80" height="20" rx="3" fill="#f3f4f6"/>
+    <text x="815" y="646" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a" letter-spacing="1.5">3QMA 119</text>
+    <circle cx="740" cy="660" r="16" fill="#05080f"/>
+    <circle cx="890" cy="660" r="16" fill="#05080f"/>
+  </g>
+  <g>
+    <rect x="1060" y="555" width="290" height="145" rx="16" fill="url(#vehicle)" stroke="#0a1220" stroke-width="2"/>
+    <rect x="1085" y="572" width="240" height="58" rx="10" fill="#0a1424" opacity="0.9"/>
+    <rect x="1160" y="668" width="95" height="22" rx="3" fill="#f3f4f6"/>
+    <text x="1207" y="685" font-size="15" font-weight="700" text-anchor="middle" fill="#0f172a" letter-spacing="1.8">5BK 7742</text>
+    <circle cx="1105" cy="700" r="20" fill="#05080f"/>
+    <circle cx="1305" cy="700" r="20" fill="#05080f"/>
+  </g>
+  <g filter="url(#glow)"><rect x="0" y="0" width="1600" height="4" fill="url(#hud)"/></g>
+  <g font-size="14" fill="#00e5ff" letter-spacing="1.2">
+    <text x="40"  y="38">◆ INSIGHTLPR v2.4 · FIELD COMMANDER</text>
+    <text x="40"  y="62" fill="#7dd3fc" font-size="12">FRAME 00:14:27.118 · FPS 60 · GPU TFLITE · MODEL ocr_v1</text>
+    <text x="820" y="38" text-anchor="middle" fill="#a5f3fc">LAT 33.7490° N   LON  -84.3880° W   BRG 272°   ALT 312m</text>
+    <text x="820" y="62" text-anchor="middle" fill="#7dd3fc" font-size="12">GHOST MODE: ACTIVE · TOR+KYBER1024 · GPS SPOOF Δ 1.2km</text>
+    <text x="1560" y="38" text-anchor="end">BATT 87%  ·  THERMAL 41°C  ·  ◉ REC</text>
+    <text x="1560" y="62" text-anchor="end" fill="#7dd3fc" font-size="12">LUMINNODE SWARM: 7/7 MESH OK  ·  RSSI -58dBm</text>
+  </g>
+  <g stroke="#00e5ff" stroke-width="1.2" fill="none" opacity="0.85">
+    <circle cx="800" cy="450" r="16"/>
+    <line x1="800" y1="424" x2="800" y2="438"/>
+    <line x1="800" y1="462" x2="800" y2="476"/>
+    <line x1="774" y1="450" x2="788" y2="450"/>
+    <line x1="812" y1="450" x2="826" y2="450"/>
+  </g>
+  <g>
+    <rect x="140" y="520" width="420" height="230" rx="4" fill="none" stroke="#ff3860" stroke-width="2.5"/>
+    <g stroke="#ff3860" stroke-width="3" fill="none">
+      <path d="M140 540 L140 520 L160 520"/>
+      <path d="M540 520 L560 520 L560 540"/>
+      <path d="M140 730 L140 750 L160 750"/>
+      <path d="M540 750 L560 750 L560 730"/>
+    </g>
+    <line x1="405" y1="695" x2="640" y2="370" stroke="#ff3860" stroke-width="1" stroke-dasharray="4 3"/>
+    <rect x="640" y="200" width="380" height="180" rx="6" fill="#0b0f18" fill-opacity="0.92" stroke="#ff3860" stroke-width="1.5"/>
+    <rect x="640" y="200" width="380" height="28" fill="#ff3860"/>
+    <text x="655" y="220" fill="#fff" font-size="14" font-weight="700" letter-spacing="2">⚠  HOTLIST HIT · NCIC FELONY</text>
+    <g fill="#fef2f2" font-size="13">
+      <text x="655" y="252">PLATE   </text><text x="730" y="252" fill="#ffb4c2" font-weight="700" letter-spacing="3">7XJR 482</text>
+      <text x="655" y="274">MAKE    2019 DODGE CHARGER · BLACK</text>
+      <text x="655" y="296">VIN     1C3CDZ*********7749 · MATCH</text>
+      <text x="655" y="318">REG     CA · EXP 2025-08 · STOLEN 2026-03-14</text>
+      <text x="655" y="340">OCR CONF <tspan fill="#86efac" font-weight="700">0.97</tspan>   ·   KDA FUSED <tspan fill="#fca5a5" font-weight="700">0.94</tspan></text>
+      <text x="655" y="362" fill="#fca5a5">▶ DISPATCH NOTIFIED · OFFICER RESPONSE: 2.4 min</text>
+    </g>
+    <g font-size="11" font-weight="700">
+      <rect x="150" y="760" width="92" height="24" rx="4" fill="#0b0f18" stroke="#ff3860"/>
+      <text x="196" y="776" text-anchor="middle" fill="#fca5a5">NADE  0.91</text>
+      <rect x="250" y="760" width="92" height="24" rx="4" fill="#0b0f18" stroke="#ff3860"/>
+      <text x="296" y="776" text-anchor="middle" fill="#fca5a5">GIE   0.88</text>
+      <rect x="350" y="760" width="92" height="24" rx="4" fill="#0b0f18" stroke="#ff3860"/>
+      <text x="396" y="776" text-anchor="middle" fill="#fca5a5">BNE   0.96</text>
+      <rect x="450" y="760" width="110" height="24" rx="4" fill="#ff3860"/>
+      <text x="505" y="776" text-anchor="middle" fill="#fff">KDA ⚠ 0.94</text>
+    </g>
+  </g>
+  <g>
+    <rect x="690" y="525" width="250" height="140" rx="4" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <g stroke="#22c55e" stroke-width="2.5" fill="none">
+      <path d="M690 540 L690 525 L705 525"/>
+      <path d="M925 525 L940 525 L940 540"/>
+      <path d="M690 650 L690 665 L705 665"/>
+      <path d="M925 665 L940 665 L940 650"/>
+    </g>
+    <rect x="945" y="530" width="170" height="70" rx="5" fill="#0b0f18" fill-opacity="0.9" stroke="#22c55e"/>
+    <text x="955" y="548" fill="#86efac" font-size="12" font-weight="700" letter-spacing="1.5">✓ CLEAR</text>
+    <text x="955" y="566" fill="#d1fae5" font-size="11">3QMA 119 · TX</text>
+    <text x="955" y="582" fill="#d1fae5" font-size="11">KDA 0.12 · REG VALID</text>
+    <text x="955" y="597" fill="#86efac" font-size="10">OCR 0.99 · LOGGED</text>
+  </g>
+  <g>
+    <rect x="1050" y="540" width="310" height="175" rx="4" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+    <g stroke="#f59e0b" stroke-width="3" fill="none">
+      <path d="M1050 558 L1050 540 L1068 540"/>
+      <path d="M1342 540 L1360 540 L1360 558"/>
+      <path d="M1050 697 L1050 715 L1068 715"/>
+      <path d="M1342 715 L1360 715 L1360 697"/>
+    </g>
+    <line x1="1210" y1="680" x2="1350" y2="260" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 3"/>
+    <rect x="1200" y="120" width="360" height="150" rx="6" fill="#0b0f18" fill-opacity="0.92" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="1200" y="120" width="360" height="26" fill="#f59e0b"/>
+    <text x="1215" y="139" fill="#1a1205" font-size="13" font-weight="700" letter-spacing="1.8">◆  ANOMALY · VIN / PLATE MISMATCH</text>
+    <g fill="#fef3c7" font-size="12">
+      <text x="1215" y="168">PLATE    </text><text x="1280" y="168" fill="#fde68a" font-weight="700" letter-spacing="2">5BK 7742</text>
+      <text x="1215" y="188">REG VIN  1FTFW1ET*****4421 (FORD F-150)</text>
+      <text x="1215" y="208">OBS VIN  1C6RR7LT*****8812 (RAM 1500)</text>
+      <text x="1215" y="228">NADE 0.82 · GIE 0.71 · BNE 0.76</text>
+      <text x="1215" y="248" fill="#fde68a">▶ SECONDARY INSPECTION RECOMMENDED</text>
+    </g>
+  </g>
+  <rect x="0" y="840" width="1600" height="60" fill="#000" fill-opacity="0.6"/>
+  <g font-size="12" fill="#7dd3fc" letter-spacing="1">
+    <text x="40" y="865">◉ SCAN RATE 14.2 plates/min</text>
+    <text x="40" y="882" fill="#94a3b8">SESSION SHA-256  a9f4…c117  ·  QRC VAULT SEALED</text>
+    <text x="480" y="865">▣ DTA QUEUE  3 pending  ·  1 TCR minted (Tier II · 1.5×)</text>
+    <text x="480" y="882" fill="#94a3b8">LAST PAYOUT 0.042 ETH · tx 0x7b2…fa19</text>
+    <text x="1000" y="865">▲ ODASI ENGINES  NADE 35% · GIE 30% · BNE 35%</text>
+    <text x="1000" y="882" fill="#94a3b8">KDA FUSION ONLINE · LATENCY 187ms</text>
+    <text x="1560" y="865" text-anchor="end">◈  DEVICE: VUZIX SHIELD AR</text>
+    <text x="1560" y="882" text-anchor="end" fill="#94a3b8">LINK  5G SA · ENCRYPTED MESH</text>
+  </g>
+  <g transform="translate(1430,120)">
+    <rect x="0" y="0" width="130" height="130" rx="8" fill="#0b0f18" fill-opacity="0.85" stroke="#00e5ff" stroke-width="1"/>
+    <text x="65" y="16" text-anchor="middle" fill="#7dd3fc" font-size="10" letter-spacing="1.5">LUMINNODE MESH</text>
+    <g stroke="#00e5ff" stroke-opacity="0.35" fill="none">
+      <circle cx="65" cy="78" r="18"/>
+      <circle cx="65" cy="78" r="34"/>
+      <circle cx="65" cy="78" r="50"/>
+    </g>
+    <line x1="65" y1="78" x2="40" y2="55" stroke="#00e5ff" stroke-opacity="0.5"/>
+    <line x1="65" y1="78" x2="92" y2="58" stroke="#00e5ff" stroke-opacity="0.5"/>
+    <line x1="65" y1="78" x2="100" y2="95" stroke="#00e5ff" stroke-opacity="0.5"/>
+    <line x1="65" y1="78" x2="45" y2="108" stroke="#00e5ff" stroke-opacity="0.5"/>
+    <circle cx="65" cy="78" r="5" fill="#00e5ff"/>
+    <circle cx="40" cy="55" r="3" fill="#22c55e"/>
+    <circle cx="92" cy="58" r="3" fill="#22c55e"/>
+    <circle cx="100" cy="95" r="3" fill="#22c55e"/>
+    <circle cx="45" cy="108" r="3" fill="#22c55e"/>
+    <circle cx="25" cy="85" r="3" fill="#f59e0b"/>
+    <circle cx="110" cy="115" r="3" fill="#22c55e"/>
+    <text x="65" y="124" text-anchor="middle" fill="#86efac" font-size="9">PRIMARY · 6 LEAF</text>
+  </g>
+  <rect width="1600" height="900" fill="url(#vignette)" pointer-events="none"/>
+</svg>
