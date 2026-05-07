@@ -21,14 +21,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install backend dependencies
-        working-directory: ./backend
-        run: npm install --legacy-peer-deps
-
-      - name: Install web-client dependencies
-        working-directory: ./web-client
-        run: npm install --legacy-peer-deps
-
       - name: Lint mobile-app
         working-directory: ./mobile-app
         run: npm run lint || true
