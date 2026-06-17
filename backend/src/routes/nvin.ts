@@ -2,7 +2,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { NVINGateway } from '../services/NVINGateway';
 import { db } from '../db/client';
-import type { NVINAnalysisRequest } from '../../../mobile-app/src/types/nvin';
+import type { NVINAnalysisRequest } from '@field-commander/types';
 
 export const nvinRouter = Router();
 const gateway = new NVINGateway();

@@ -5,7 +5,7 @@
 
 import { ethers } from 'ethers';
 import crypto from 'crypto';
-import type { DTAPayoutRequest, DTAPayoutResponse } from '../../mobile-app/src/types/nvin';
+import type { DTAPayoutRequest, DTAPayoutResponse } from '@field-commander/types';
 
 const DTA_ABI = [
   'function verifyRecovery(bytes32 plateHash, address agent, bytes32 evidenceHash, uint8 confidence) external',

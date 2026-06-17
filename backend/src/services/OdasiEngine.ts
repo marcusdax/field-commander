@@ -6,7 +6,7 @@
 
 import Redis from 'ioredis';
 import crypto from 'crypto';
-import type { NVINAnalysisRequest, NADEOutput, GIEOutput, BNEOutput, KDAFusionOutput, ActionCode } from '../../mobile-app/src/types/nvin';
+import type { NVINAnalysisRequest, NADEOutput, GIEOutput, BNEOutput, KDAFusionOutput, ActionCode } from '@field-commander/types';
 
 // ─── Redis client (lazy connect) ─────────────────────────────────────────────
 const redis = new Redis({

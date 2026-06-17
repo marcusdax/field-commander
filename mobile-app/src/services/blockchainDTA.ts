@@ -37,7 +37,7 @@ export const initializeBlockchain = async (): Promise<boolean> => {
     contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
     return true;
   } catch (error) {
-    initialization failed:', error console.error('Blockchain);
+    console.error('Blockchain initialization failed:', error);
     return false;
   }
 };

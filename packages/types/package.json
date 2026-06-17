@@ -1,0 +1,9 @@
+{
+  "name": "@field-commander/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Field Commander",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": ["index.d.ts"],
+  "license": "MIT"
+}

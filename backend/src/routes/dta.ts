@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { DTAService } from '../services/DTAService';
 import { db } from '../db/client';
-import type { DTAPayoutRequest } from '../../../mobile-app/src/types/nvin';
+import type { DTAPayoutRequest } from '@field-commander/types';
 
 export const dtaRouter = Router();
 const dta = new DTAService();

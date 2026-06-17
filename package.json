@@ -8,7 +8,8 @@
     "web-client",
     "backend",
     "blockchain",
-    "edge-substrate"
+    "edge-substrate",
+    "packages/*"
   ],
   "scripts": {
     "mobile": "npm run start --workspace=mobile-app",
@@ -18,14 +19,21 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:seed": "npm run seed:hotlist --workspace=backend",
+    "docker:build": "docker-compose build",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "build": "npm run build:backend && npm run build:edge && npm run build:contracts && npm run build:web",
+    "build:backend": "npm run build --workspace=backend",
+    "build:edge": "npm run build --workspace=edge-substrate",
     "build:android": "npm run build:android --workspace=mobile-app",
     "build:ios": "npm run build:ios --workspace=mobile-app",
     "build:web": "npm run build --workspace=web-client",
     "build:contracts": "npm run compile --workspace=blockchain",
     "deploy:contract:amoy": "npm run deploy:amoy --workspace=blockchain",
-    "e2e:local": "npm run e2e:local --workspace=blockchain"
+    "deploy:contract:polygon": "npm run deploy:polygon --workspace=blockchain",
+    "e2e:local": "npm run e2e:local --workspace=blockchain",
+    "migrate:backend": "npm run migrate --workspace=backend",
+    "migrate:edge": "npm run migrate --workspace=edge-substrate"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.6.0",

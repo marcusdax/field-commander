@@ -8,7 +8,7 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build 2>/dev/null || true
+RUN npm run build
 USER appuser
 EXPOSE 3002
 CMD ["node", "dist/server.js"]

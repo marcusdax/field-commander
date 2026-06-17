@@ -5,7 +5,7 @@
  */
 
 import { ethers } from 'ethers';
-import type { NVINAnalysisRequest, NVINAnalysisResponse, KDAFusionOutput, AlertLevel } from '../../mobile-app/src/types/nvin';
+import type { NVINAnalysisRequest, NVINAnalysisResponse, KDAFusionOutput, AlertLevel } from '@field-commander/types';
 import { OdasiEngine } from './OdasiEngine';
 
 // Inline ABI — avoids compile-time dependency on hardhat artifacts
