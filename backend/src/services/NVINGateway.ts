@@ -18,15 +18,16 @@ export class NVINGateway {
   private odasi = new OdasiEngine();
 
   async analyze(request: NVINAnalysisRequest): Promise<NVINAnalysisResponse> {
-    const [nade, gie, bne] = await Promise.all([
+    const [nade, gie] = await Promise.all([
       this.odasi.runNADE(request),
       this.odasi.runGIE(request),
-      this.odasi.runBNE(request),
     ]);
 
     // Override GIE geospatialRisk with real Redis georadius if available
     const geoRisk = await this.odasi.getGeoRisk(request.geolocation.lat, request.geolocation.lon);
     gie.geospatialRisk = geoRisk;
+
+    const bne = await this.odasi.runBNE(request, nade, gie);
 
     const kda: KDAFusionOutput = this.odasi.fuseKDA({ nade, gie, bne });
     const hotlistMatch = await this.odasi.checkHotlist(request.plateText);

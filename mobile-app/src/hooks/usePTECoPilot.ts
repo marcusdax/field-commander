@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Geolocation, { GeoPosition, GeoError } from '@react-native-community/geolocation';
 import { PTESuggestion } from '../types/mission';
+import { evaluatePteTacticalState } from '../services/masternexCryptoCore.ts';
 
 interface UsePTECoPilotOptions {
   missionId: string;
@@ -78,57 +79,21 @@ export const usePTECoPilot = (options: UsePTECoPilotOptions) => {
   const generateSuggestions = useCallback(() => {
     if (!currentLocation) return;
 
-    const newSuggestions: PTESuggestion[] = [];
+    const tactical = evaluatePteTacticalState({
+      missionId,
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
+      accuracy: currentLocation.accuracy,
+      ghostMode,
+    });
 
-    const random = Math.random();
-
-    if (random > 0.3) {
-      newSuggestions.push({
-        id: `SUG-${Date.now()}-1`,
-        type: 'route',
-        content: `Approach from ${getRandomDirection()} – ${60 + Math.floor(Math.random() * 30)}% lower risk`,
-        confidence: 0.7 + Math.random() * 0.2,
-        timestamp: Date.now(),
-      });
-    }
-
-    if (random > 0.5) {
-      newSuggestions.push({
-        id: `SUG-${Date.now()}-2`,
-        type: 'pin',
-        content: `Deploy LuminNode #${Math.floor(Math.random() * 12) + 1} at ${getRandomDirection()} for blind-spot coverage`,
-        confidence: 0.65 + Math.random() * 0.2,
-        timestamp: Date.now(),
-      });
-    }
-
-    if (random > 0.7) {
-      newSuggestions.push({
-        id: `SUG-${Date.now()}-3`,
-        type: 'extension',
-        content: `Mission extension opportunity detected (+${15 + Math.floor(Math.random() * 20)} TC)`,
-        confidence: 0.6 + Math.random() * 0.2,
-        timestamp: Date.now(),
-      });
-      setMissionExtensionOpportunity(true);
-    }
-
-    if (random > 0.85) {
-      newSuggestions.push({
-        id: `SUG-${Date.now()}-4`,
-        type: 'safety',
-        content: `Elevated activity detected in proximity – maintain ${Math.floor(Math.random() * 3) + 2}m distance`,
-        confidence: 0.75 + Math.random() * 0.15,
-        timestamp: Date.now(),
-      });
-      setThreatLevel('medium');
-    }
-
-    setSuggestions(newSuggestions);
+    setSuggestions(tactical.suggestions);
+    setThreatLevel(tactical.threatLevel);
+    setMissionExtensionOpportunity(tactical.suggestions.some(s => s.type === 'extension'));
     updateOptimalRoute();
 
-    console.log(`💡 Generated ${newSuggestions.length} PTE suggestions`);
-  }, [currentLocation]);
+    console.log(`💡 Generated ${tactical.suggestions.length} PTE suggestions in ${tactical.hexId}`);
+  }, [currentLocation, missionId, ghostMode]);
 
   const updateOptimalRoute = useCallback(() => {
     if (!currentLocation) return;
@@ -138,12 +103,12 @@ export const usePTECoPilot = (options: UsePTECoPilotOptions) => {
       distance: 50 + Math.random() * 200,
       waypoints: [
         {
-          latitude: currentLocation.latitude + (Math.random() - 0.5) * 0.01,
-          longitude: currentLocation.longitude + (Math.random() - 0.5) * 0.01,
+          lat: currentLocation.latitude + 0.0035,
+          lng: currentLocation.longitude + 0.0035,
         },
         {
-          latitude: currentLocation.latitude + (Math.random() - 0.5) * 0.02,
-          longitude: currentLocation.longitude + (Math.random() - 0.5) * 0.02,
+          lat: currentLocation.latitude + 0.007,
+          lng: currentLocation.longitude - 0.004,
         },
       ],
     });

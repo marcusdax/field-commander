@@ -1,18 +1,18 @@
 import NetInfo from '@react-native-community/netinfo';
 import { GhostModeStatus } from '../types';
+import { sealQrcPayload, openQrcPayload } from './masternexCryptoCore.ts';
 
 let torActive = false;
 let socksPort: number | null = null;
 let gpsSpoofed = false;
 let encryptionInitialized = false;
 
-// Mock encryption - replace with actual post-quantum library in production
-const mockEncrypt = async (data: string): Promise<string> => {
-  return Buffer.from(data).toString('base64');
+const encryptEnvelope = async (data: string): Promise<string> => {
+  return sealQrcPayload(data, 'MASTERNEX-GHOST-RELAY-KYBER1024-KEY');
 };
 
-const mockDecrypt = async (data: string): Promise<string> => {
-  return Buffer.from(data, 'base64').toString('utf-8');
+const decryptEnvelope = async (data: string): Promise<string> => {
+  return openQrcPayload(data, 'MASTERNEX-GHOST-RELAY-KYBER1024-KEY');
 };
 
 export const activateGhostMode = async (): Promise<boolean> => {
@@ -37,7 +37,7 @@ export const activateGhostMode = async (): Promise<boolean> => {
     }
 
     try {
-      await mockEncrypt('KEY_GEN_kyber1024');
+      await encryptEnvelope('KEY_GEN_kyber1024');
       console.log('🔐 512-bit QRC Vault initialized (Kyber-1024)');
       encryptionInitialized = true;
     } catch (e) {
@@ -119,7 +119,7 @@ export const routeThroughGhostRelay = async (data: any): Promise<{
     throw new Error('Ghost Mode not active');
   }
 
-  const encrypted = await mockEncrypt(JSON.stringify(data));
+  const encrypted = await encryptEnvelope(JSON.stringify(data));
   console.log(`📤 Data routed through Ghost Relay: ${encrypted.length} bytes`);
 
   return {
@@ -131,11 +131,11 @@ export const routeThroughGhostRelay = async (data: any): Promise<{
 };
 
 export const encryptDataForVault = async (data: any): Promise<string> => {
-  return await mockEncrypt(JSON.stringify(data));
+  return await encryptEnvelope(JSON.stringify(data));
 };
 
 export const decryptDataFromVault = async (encryptedData: string): Promise<any> => {
-  const decrypted = await mockDecrypt(encryptedData);
+  const decrypted = await decryptEnvelope(encryptedData);
   return JSON.parse(decrypted);
 };
 
@@ -144,7 +144,7 @@ export const broadcastSafeWaypoint = async (): Promise<{
   longitude: number;
   name: string;
   distance: number;
-} | null> {
+} | null> => {
   if (!torActive) {
     return null;
   }

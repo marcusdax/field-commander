@@ -8,6 +8,8 @@ import knexConfig from './db/knexfile';
 import logger from './logger';
 import { nvinRouter } from './routes/nvin';
 import { dtaRouter } from './routes/dta';
+import { submitOCR } from './routes/ocr';
+import { registerSwarm, getSwarm } from './routes/swarm';
 
 dotenv.config();
 
@@ -53,6 +55,14 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/nvin', nvinRouter);
 app.use('/api/dta', dtaRouter);
+app.use('/v1/dta', dtaRouter);
+app.post('/v1/ocr/submit', submitOCR);
+app.post('/v1/swarm/register', registerSwarm);
+app.get('/v1/swarm/:swarmId', (req, res) => {
+  const swarm = getSwarm(req.params['swarmId'] || '');
+  if (!swarm) return res.status(404).json({ error: 'Swarm not found' });
+  return res.json(swarm);
+});
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: '4.0.0' }));
 
 io.on('connection', (socket) => {

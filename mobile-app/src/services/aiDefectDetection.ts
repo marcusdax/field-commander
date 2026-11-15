@@ -142,6 +142,10 @@ export const generateAutomatedReport = async (
   return report;
 };
 
+export const analyzeFrame = async (frame: any): Promise<DefectResult[]> => {
+  return detectDefects(frame);
+};
+
 export const runBatchAnalysis = async (
   frames: any[],
   missionId: string

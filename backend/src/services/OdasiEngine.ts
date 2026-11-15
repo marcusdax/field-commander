@@ -64,11 +64,15 @@ function mockGIE(req: NVINAnalysisRequest): GIEOutput {
   };
 }
 
-function mockBNE(req: NVINAnalysisRequest): BNEOutput {
+function mockBNE(req: NVINAnalysisRequest, nade?: NADEOutput, gie?: GIEOutput): BNEOutput {
+  const nadeSignal = nade ? nade.anomalyScore : req.confidence * 0.8;
+  const gieSignal = gie ? gie.geospatialRisk : 0.5;
+  const logOdds = Math.log(0.25 / 0.75) + Math.log(0.4 + nadeSignal * 3.8) + Math.log(0.5 + gieSignal * 3.2);
+  const intentScore = Number(Math.min(0.99, Math.max(0.05, 1 / (1 + Math.exp(-logOdds)))).toFixed(4));
   return {
-    behaviorLabel: req.confidence > 0.88 ? 'HIGH_VALUE_TARGET' : 'ROUTINE_SCAN',
-    intentScore: req.confidence * 0.9,
-    recoveryLikelihood: req.confidence * 0.85,
+    behaviorLabel: intentScore >= 0.85 || req.confidence > 0.88 ? 'HIGH_VALUE_TARGET' : 'ROUTINE_SCAN',
+    intentScore,
+    recoveryLikelihood: Number(Math.min(0.98, req.confidence * 0.65 + intentScore * 0.3).toFixed(4)),
   };
 }
 
@@ -90,10 +94,10 @@ export class OdasiEngine {
     return postWithTimeout(url, req) as Promise<GIEOutput>;
   }
 
-  async runBNE(req: NVINAnalysisRequest): Promise<BNEOutput> {
+  async runBNE(req: NVINAnalysisRequest, nade?: NADEOutput, gie?: GIEOutput): Promise<BNEOutput> {
     const url = process.env['ODASI_BNE_URL'];
-    if (!url || this.isMock) return mockBNE(req);
-    return postWithTimeout(url, req) as Promise<BNEOutput>;
+    if (!url || this.isMock) return mockBNE(req, nade, gie);
+    return postWithTimeout(url, { ...req, nadeScore: nade?.anomalyScore, gieRisk: gie?.geospatialRisk }) as Promise<BNEOutput>;
   }
 
   fuseKDA({ nade, gie, bne }: { nade: NADEOutput; gie: GIEOutput; bne: BNEOutput }): KDAFusionOutput {
